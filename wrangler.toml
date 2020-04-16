@@ -1,5 +1,5 @@
-name = "{{project-name}}"
-type = "javascript"
+name = "cfapp"
+type = "webpack"
 account_id = ""
 workers_dev = true
 route = ""
