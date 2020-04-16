@@ -1,8 +1,9 @@
-// Initialize editors and the provided API url
+// Initialize editors, API url, and landing
+const landing = require('./landing.js');
 const API_URL = 'https://cfw-takehome.developers.workers.dev/api/variants';
 
 addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
+  event.respondWith(dispatchRequest(event.request));
 });
 
 /**
@@ -13,6 +14,19 @@ function getExpiration() {
   let expiration = new Date();
   expiration.setTime(expiration.getTime() + 7*24*60*60);
   return expiration.toUTCString();
+}
+
+/**
+ * Loads the landing page or runs handleRequest(), depending on request method
+ * @param {Request} request 
+ */
+async function dispatchRequest(request) {
+  if(request.method == 'POST') {
+    let response = await handleRequest(request);
+    return response;
+  } else {
+    return new Response(landing, { headers: {'Content-Type': 'text/html'} });
+  }
 }
 
 /**
@@ -44,6 +58,6 @@ async function handleRequest(request) {
   let mutated_response = new HTMLRewriter().transform(variant_response);
 
   // Add cookie indicating selected variant to response header
-  if(!cookies) mutated_response.headers.append('Set-Cookie', `variant=${chosen_variant}; Expires=${getExpiration()}`);
-  return mutated_response;
+  const html = await mutated_response.text();
+  return new Response(html, { headers: {'Content-Type': 'text/html', 'Set-Cookie': `variant=${chosen_variant}; Expires=${getExpiration()}`} });
 }
