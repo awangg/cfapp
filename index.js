@@ -1,5 +1,6 @@
 // Initialize editors, API url, and landing
-const landing = require('./landing.js');
+const { CSSEditor, HeadingEditor, TextEditor, LinkEditor } = require('./editors');
+const landing = require('./landing');
 const API_URL = 'https://cfw-takehome.developers.workers.dev/api/variants';
 
 addEventListener('fetch', event => {
@@ -55,7 +56,12 @@ async function handleRequest(request) {
 
   // Retrieve the response from the chosen variant
   let variant_response = await fetch(variants[chosen_variant]);
-  let mutated_response = new HTMLRewriter().transform(variant_response);
+  let mutated_response = new HTMLRewriter()
+    .on('.bg-white', new CSSEditor(chosen_variant))
+    .on('h1#title', new HeadingEditor(chosen_variant))
+    .on('p#description', new TextEditor(chosen_variant))
+    .on('a#url', new LinkEditor(chosen_variant))
+    .transform(variant_response);
 
   // Add cookie indicating selected variant to response header
   const html = await mutated_response.text();
